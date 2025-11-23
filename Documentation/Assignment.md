@@ -1,5 +1,5 @@
 # ECEN-361 Lab-10: IPC-Examples
-     Student Name:  ___________________________________
+     Student Name:  Ian McMaster
 
 ## Introduction and Objectives of the Lab
 
@@ -80,12 +80,12 @@ Now make sure to write the code inside of the Semaphore_Toggle_Task function tha
 
 <br>
 1. How did your task ‘wait’ for the debounced button? <br>
-<mark>_______________________________________________________ </mark>
+<mark> The Semaphore_Toggle_Task tried to aquire the the semaphore and got blocked. When the button push releases the semaphore, the blocked task is resumed and toggles the LED.  </mark>
 <br>
 <br><br>
 
 2.)	How long is the time between the button interrupt coming in and it being enabled again? <br>
-<mark>_______________________________________________________ </mark>
+<mark> A little bit more than 30ms. (Button debounce has an osDelay of 30 and a bit of code that releases the semaphore.) </mark>
 ><br>
 > <br>
 
@@ -96,11 +96,11 @@ Now create a second task (semaphore_Toggle_D3) -- <p>
 
 
 3.)	Do both of (D4 and D3) toggle with a single button press?  Describe the behavior?  <br>
-<mark>_________________________________________________________________________________<br><br>
+<mark>No, the buttons take turns toggling with each button press.<br><br>
 
 4.)	Now change one of the priorities of these two tasks, re-compile,  and re-run.
 How has the behavior changed?
-<mark>_________________________________________________________________________________<br><br>
+<mark>The light with the higher priority always toggles and the other does not.<br><br>
 
 
 ## Part 2: Mutexes
@@ -152,12 +152,12 @@ current count. The first two processes are done for you "Mutex_CountDownTask" an
 >
 ><br>
 >7.)	Comment on the Up/Down/ ”—” display that you see.  <br><br>
-><mark>___________________________________________________________________________________________________________<br><br><p>
+><mark>It is competing to reset (show "--"), count up, and count down all at the same time. (As a side note, I have no clue if I implemented this correctly. I don't think the instructions did not say to create a new task or to stick it in the resetGlobal task. I created a new task that has the same priority as the up and down tasks.)<br><br><p>
 
 
 >8.)	Is there a ‘priority’ associated with the Mutex?  If so, how can it be changed?
 ><br>  
-><mark>___________________________________________________________________________________________________________<br><br>
+><mark> No, mutexes do not have priority. The tasks that use them do. The lower priority task can run and take the mutex when all the other items are blocked. Other tasks prempt the lower priority task but then are blocked as the lower priority task holds the mutex.<br><br>
 <p>
 
 ><br>
@@ -165,7 +165,7 @@ current count. The first two processes are done for you "Mutex_CountDownTask" an
 
 >  Change the priority of the Reset to be osPriorityIdle.  This is the lowest priority available. Note that you will not find this priority type listed in the .ioc configuration, as it is intended to be used for idle threads. This priority must be manually set in the code.<br>
 ><br> Did you see any effect on the ability of Button_3 to reset the count?<br><br>
-><mark>___________________________________________________________________________________________________________<br><br>
+><mark>I did not visibilly see any effect. I think this is due to count up and count down becoming blocked and allowing the reset to run. It technically does effect it, but it happenes fast enough that you cannot see it.<br><br>
 >
 ---
 <!--------------------------------------------------------------------------------->
@@ -193,15 +193,17 @@ display digit.
 >9.)	 Change the timer period from the current “200” mS to something different.
 >Verify that the decrementing count changes accordingly.
 
+<mark>It  worked as expected. <mark>
+
 >
 >10.) This timer was created via the GUI  (.IOC file).  It’s type is *“osTimerPeriodic”* which means it repeats over and over.<br><br>
 What other options can a Software Timer take to change its Type and operation? <br>
-><mark>___________________________________________________________________________________________________________<br><br>
+><mark>osTimerOnce (I assume it runs the timer once instead of in a loop).<br><br>
 
 >11).	The debounce for the switches here used an osDelay() call (non-blocking).  Is there any advantage to using a SWTimer here instead?<br>
 > Explain why or why not?
 >
-><mark>___________________________________________________________________________________________________________<br><br>
+><mark>Yes. My first thought was no, there is not a reason, but I think there could be. I then checked with ChatGPT and it said that while osDelay is non-blocking to other things, a SW timer makes it so the task is not blocked. If you wanted the task to do something else, you might use a SW timer. I think that is silly since you can just have two tasks like our debounce task and toggle task. I checked more on the internet and found the suggestion that it can be good if you have lots of tasks running together. If you needed a really short pause, it could be time consuming to have all you r tasks quickly switching between being blocked and unblocked. This would cause a lot of overhead. I think SW timers might also be more safe since you can better remove race conditions. <br><br>
 
 
 <!--------------------------------------------------------------------------------->
@@ -216,7 +218,7 @@ What other options can a Software Timer take to change its Type and operation? <
 >2.	We only used a binary semaphore in this lab for the switch presses.  Change it so that presses are accumulated through a counting semaphore and then handled as they are taken off.<br><br>
 >Describe any issues with this approach
 >
-><mark>___________________________________________________________________________________________________________<br><br>
+><mark>I swapped the button 1 binary semaphore to a counting semaphore. I had to make sure that the max count of the counting semaphore was big enough to actually see something. I then had to add some delays to my LED tasks since they can toggle faster than I can push, so the count would never build up. Overall it seemed to work.<br><br>
 >
 
 >
